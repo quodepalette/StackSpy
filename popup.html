@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JoErl StackSpy</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <div class="brand">
+        <img src="icons/logo.svg" width="28" height="28" alt="">
+        <div class="wordmark"><span>JoErl</span> StackSpy</div>
+      </div>
+      <div class="actions">
+        <button class="ibtn" id="btn-save" title="Save this site to your collection" aria-label="Save site"></button>
+        <button class="ibtn" id="btn-rescan" title="Rescan (deep)" aria-label="Rescan"></button>
+        <button class="ibtn" id="btn-theme" title="Switch theme" aria-label="Theme"></button>
+        <button class="ibtn" id="btn-menu" title="More" aria-label="More"></button>
+      </div>
+      <div class="menu" id="menu" hidden>
+        <button data-act="md">Copy report as Markdown</button>
+        <button data-act="json">Copy raw JSON</button>
+        <button data-act="download">Download report (.md)</button>
+        <button data-act="full">Open full-page view</button>
+        <button data-act="export-saved">Export saved sites</button>
+        <button data-act="import-saved">Import saved sites</button>
+        <label class="check"><input type="checkbox" id="opt-auto"> Auto-scan pages &amp; show badge</label>
+      </div>
+      <input type="file" id="import-file" accept="application/json" hidden>
+      <div class="progress" id="progress" hidden><i></i></div>
+    </header>
+
+    <section class="site" id="site"></section>
+
+    <nav class="tabs" id="tabs" role="tablist">
+      <button role="tab" data-tab="stack" class="on">Stack</button>
+      <button role="tab" data-tab="insights">Insights</button>
+      <button role="tab" data-tab="network">Network</button>
+      <button role="tab" data-tab="inside">Inside</button>
+      <button role="tab" data-tab="saved">Saved</button>
+    </nav>
+
+    <div class="search"><input id="q" type="search" placeholder="Filter this tab…" autocomplete="off" spellcheck="false"></div>
+
+    <main id="view" tabindex="-1"></main>
+    <footer id="foot"></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script src="data/_init.js"></script>
+  <script src="data/meta.js"></script>
+  <script src="data/icons.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
