@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "JoErl StackSpy",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "X-ray any website: detect its technologies, versions, headers, CSS techniques and performance — with plain-English explanations that teach you how it was built.",
   "minimum_chrome_version": "110",
   "permissions": ["activeTab", "scripting", "webRequest", "storage", "cookies"],

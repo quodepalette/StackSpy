@@ -63,7 +63,10 @@
   function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 1800); }
   const fmtBytes = (n) => (n == null ? "–" : n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(0) + " KB" : (n / 1048576).toFixed(1) + " MB");
   const fmtMs = (n) => (n == null ? "–" : n >= 1000 ? (n / 1000).toFixed(1) + " s" : Math.round(n) + " ms");
-  const confLabel = (t) => (t.confidence >= 85 ? "Strong evidence" : t.confidence >= 65 ? "Good evidence" : "Corroborated evidence");
+  // Direct fingerprints always outrank inferred dependencies. Inference remains useful,
+  // but it must never look like direct proof in the UI.
+  const confLabel = (t) => t.inferred ? "Inferred" : (t.confidence >= 85 ? "Strong evidence" : t.confidence >= 65 ? "Good evidence" : "Corroborated evidence");
+  const techSort = (a, b) => (Number(!!a.inferred) - Number(!!b.inferred)) || (b.confidence - a.confidence) || a.name.localeCompare(b.name);
   const send = (msg) => new Promise((res) => { try { chrome.runtime.sendMessage(msg, (r) => res(chrome.runtime.lastError ? null : r)); } catch (e) { res(null); } });
   const layerMeta = (id) => (self.LAYERS || []).find((l) => l.id === id) || { name: id, hint: "" };
 
@@ -118,17 +121,17 @@
     const lc = layerVar(layerOf(t));
     const cat = (self.CATS || {})[t.category] || {};
     const filled = t.confidence >= 85 ? 3 : t.confidence >= 65 ? 2 : 1;
-    const card = h("div", { class: "card", "data-name": t.name, "data-search": (t.name + " " + t.category + " " + (t.version || "") + " " + t.description).toLowerCase() });
+    const card = h("div", { class: "card" + (t.inferred ? " inferred" : ""), "data-name": t.name, "data-search": (t.name + " " + t.category + " " + (t.version || "") + " " + t.description + " " + (t.inferred ? "inferred implied" : "direct")).toLowerCase() });
     card.style.setProperty("--lc", lc);
     const row = h("button", { class: "row", "aria-expanded": "false", onclick: () => { const o = card.classList.toggle("open"); row.setAttribute("aria-expanded", o); } },
       tile(t.name, true),
-      h("div", { class: "grow" }, h("div", { class: "nm" }, t.name, t.version ? h("span", { class: "ver", text: "v" + t.version }) : null), h("div", { class: "sub", text: t.category })),
+      h("div", { class: "grow" }, h("div", { class: "nm" }, t.name, t.version ? h("span", { class: "ver", text: "v" + t.version }) : null, t.inferred ? h("span", { class: "inferred-pill", text: "INFERRED" }) : null), h("div", { class: "sub", text: t.category + (t.inferred ? " · implied by " + ((t.evidence && t.evidence[0] && t.evidence[0].source) || "another detected technology") : " · directly detected") })),
       h("div", { class: "conf" }, h("span", { class: "lbl", text: confLabel(t) }), h("span", { class: "meter" }, [1, 2, 3].map((i) => h("i", { class: i <= filled ? "f" : "" })))),
       (() => { const s = ic("chev"); s.classList.add("chev"); return s; })()
     );
     const body = h("div", { class: "body" });
     body.append(h("p", { text: t.description || "No description yet." }));
-    body.append(h("div", { class: "why" }, h("b", { text: "Evidence · " }), String(t.confidence || 0) + " score · " + String(t.evidenceFamilies || 0) + " signal type" + ((t.evidenceFamilies || 0) === 1 ? "" : "s") + " · " + (t.evidenceQuality || "unknown")));
+    body.append(h("div", { class: "why" + (t.inferred ? " inferred-why" : "") }, h("b", { text: t.inferred ? "Inference · " : "Evidence · " }), t.inferred ? ("inferred from " + ((t.evidence && t.evidence[0] && t.evidence[0].source) || "another detected technology") + " · " + String(t.confidence || 0) + " inference score") : (String(t.confidence || 0) + " score · " + String(t.evidenceFamilies || 0) + " signal type" + ((t.evidenceFamilies || 0) === 1 ? "" : "s") + " · " + (t.evidenceQuality || "unknown"))));
     if (cat.why) body.append(h("div", { class: "why" }, h("b", { text: t.category + " · " }), cat.why));
     if (t.details && t.details.length) {
       body.append(h("div", { class: "kicker", text: "Extracted details" }));
@@ -150,32 +153,12 @@
 
   function renderStack(view) {
     const r = state.result;
-    const techs = r.techs || [];
+    const techs = (r.techs || []).slice().sort(techSort);
     if (!techs.length) { view.append(h("div", { class: "empty" }, h("h2", { text: "Nothing fingerprinted yet" }), h("p", { text: "This page looks custom or heavily minimised. Check the Insights and Inside tabs for finer clues." }))); return; }
     if (r.summary) view.append(h("p", { class: "lead", text: r.summary }));
 
-    const map = h("div", { class: "stackmap" });
-    for (const L of self.LAYERS) {
-      const list = techs.filter((t) => layerOf(t) === L.id);
-      if (!list.length) continue;
-      const band = h("div", { class: "band", "data-search": list.map((t) => t.name.toLowerCase()).join(" ") });
-      band.style.setProperty("--lc", layerVar(L.id));
-      band.append(h("div", null, h("div", { class: "lname", text: L.name }), h("div", { class: "lhint", text: L.hint })));
-      const items = h("div", { class: "items" });
-      list.forEach((t) => items.append(h("button", { class: "tchip", title: t.category, onclick: () => openTech(t.name) }, tile(t.name), t.name, t.version ? h("span", { class: "v", text: t.version }) : null)));
-      band.append(items);
-      map.append(band);
-    }
-    view.append(h("div", { class: "h" }, "Stack cross-section", h("small", { text: techs.length + " detected" })), map);
-
-    if (r.highlights && r.highlights.length) {
-      view.append(h("div", { class: "h", text: "Worth studying" }));
-      const hl = h("div", { class: "hl" });
-      r.highlights.forEach((x) => hl.append(h("div", { "data-search": (x.title + " " + x.text).toLowerCase() }, h("b", { text: x.title }), h("span", { text: x.text }))));
-      view.append(hl);
-    }
-
-    view.append(h("div", { class: "h" }, "Every technology", h("small", { text: "tap to learn" })));
+    // 1) Every technology — direct detections first, inferred dependencies second.
+    view.append(h("div", { class: "h" }, "Every technology", h("small", { text: "direct detections first · tap to learn" })));
     for (const L of self.LAYERS) {
       const cats = {};
       techs.filter((t) => layerOf(t) === L.id).forEach((t) => (cats[t.category] = cats[t.category] || []).push(t));
@@ -183,9 +166,33 @@
         const g = h("div", { class: "group", "data-group": "1" });
         g.style.setProperty("--lc", layerVar(L.id));
         g.append(h("div", { class: "gname" }, h("i"), c, h("small", { text: (self.CATS[c] || {}).blurb || "" })));
-        cats[c].forEach((t) => g.append(techCard(t)));
+        cats[c].sort(techSort).forEach((t) => g.append(techCard(t)));
         view.append(g);
       }
+    }
+
+    // 2) Stack cross-section — preserve the architectural layer view, but put direct
+    // fingerprints ahead of inferred dependencies inside every layer.
+    const map = h("div", { class: "stackmap" });
+    for (const L of self.LAYERS) {
+      const list = techs.filter((t) => layerOf(t) === L.id).sort(techSort);
+      if (!list.length) continue;
+      const band = h("div", { class: "band", "data-search": list.map((t) => t.name.toLowerCase()).join(" ") });
+      band.style.setProperty("--lc", layerVar(L.id));
+      band.append(h("div", null, h("div", { class: "lname" }, L.name), h("div", { class: "lhint" }, L.hint)));
+      const items = h("div", { class: "items" });
+      list.forEach((t) => items.append(h("button", { class: "tchip" + (t.inferred ? " inferred" : ""), title: t.inferred ? "Inferred from " + ((t.evidence && t.evidence[0] && t.evidence[0].source) || "another detected technology") : "Directly detected", onclick: () => openTech(t.name) }, tile(t.name), t.name, t.version ? h("span", { class: "v", text: t.version }) : null, t.inferred ? h("span", { class: "v inferred-v", text: "inferred" }) : null)));
+      band.append(items);
+      map.append(band);
+    }
+    view.append(h("div", { class: "h" }, "Stack cross-section", h("small", { text: techs.length + " technologies" })), map);
+
+    // 3) Worth studying — kept last so the evidence inventory remains the primary view.
+    if (r.highlights && r.highlights.length) {
+      view.append(h("div", { class: "h", text: "Worth studying" }));
+      const hl = h("div", { class: "hl" });
+      r.highlights.forEach((x) => hl.append(h("div", { "data-search": (x.title + " " + x.text).toLowerCase() }, h("b", { text: x.title }), h("span", { text: x.text }))));
+      view.append(hl);
     }
   }
 
@@ -295,7 +302,7 @@
     for (const layer of self.LAYERS) {
       const list = r.techs.filter((t) => layerOf(t) === layer.id); if (!list.length) continue;
       L.push("## " + layer.name, "");
-      list.forEach((t) => { L.push("- **" + t.name + "**" + (t.version ? " " + t.version : "") + " — " + t.category + (" · " + t.confidence + " evidence score")); if (t.description) L.push("  - " + t.description); (t.details || []).forEach((d) => L.push("  - " + d.label + ": " + d.values.join(", "))); });
+      list.slice().sort(techSort).forEach((t) => { L.push("- **" + t.name + "**" + (t.version ? " " + t.version : "") + " — " + t.category + (t.inferred ? (" · INFERRED from " + (t.inferredFrom || "another detected technology")) : (" · " + t.confidence + " evidence score"))); if (t.description) L.push("  - " + t.description); (t.details || []).forEach((d) => L.push("  - " + d.label + ": " + d.values.join(", "))); });
       L.push("");
     }
     if (r.highlights && r.highlights.length) { L.push("## Worth studying", ""); r.highlights.forEach((x) => L.push("- **" + x.title + "** — " + x.text)); L.push(""); }

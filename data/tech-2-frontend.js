@@ -143,16 +143,20 @@ T("GSAP","Animation","https://gsap.com",{d:"Industry-standard animation library 
 T("ScrollTrigger","Animation","https://gsap.com/docs/v3/Plugins/ScrollTrigger/",{d:"GSAP plugin for scroll-linked animation and pinning.",js:{"ScrollTrigger.version":r`^([\d.]+)##v=\1`,ScrollTrigger:""},scripts:[r`ScrollTrigger`],implies:["GSAP"]});
 T("Lenis","Animation","https://lenis.darkroom.engineering",{d:"Lightweight smooth-scroll library used on many award-style sites.",classes:[r`^lenis(-smooth|-stopped|-scrolling)?$`],js:{lenis:"",Lenis:""},scripts:[r`lenis|@studio-freight/lenis`]});
 T("Locomotive Scroll","Animation","https://locomotivemtl.github.io/locomotive-scroll/",{d:"Smooth scrolling with parallax via data attributes.",attrs:[r`^data-scroll(-container|-section|-speed)?$`],classes:[r`^has-scroll-(init|smooth)$`],scripts:[r`locomotive-scroll`]});
-T("Framer Motion","Animation","https://motion.dev",{
+T("Framer Motion","JS Libraries","https://motion.dev",{
   d:"Declarative animation library for React. Modern releases are published as Motion and can be imported from motion/react; older applications commonly import from framer-motion.",
   attrs:[r`^data-projection-id$##c=12`,r`^data-framer-motion##c=12`],
-  scripts:[r`(?:^|[/@])framer-motion(?:[./@]|$)##c=75`,r`(?:^|[/@])motion-dom(?:[./@]|$)##c=65`,r`(?:^|[/@])motion-utils(?:[./@]|$)##c=65`],
+  html:[r`(?:from\s+|require\(\s*)["'](?:framer-motion|motion/react|motion)["']##c=88`,r`(?:framer-motion|motion/react|motion-dom|motion-utils)##c=55`],
+  scripts:[r`(?:^|[/@])framer-motion(?:[./@]|$)##c=75`,r`(?:^|[/@])motion(?:[./@]|$)##c=70`,r`(?:^|[/@])motion-dom(?:[./@]|$)##c=65`,r`(?:^|[/@])motion-utils(?:[./@]|$)##c=65`],
+  requests:[r`(?:^|[/@])framer-motion(?:[./@?]|$)##c=80`,r`(?:^|[/@])motion-dom(?:[./@?]|$)##c=70`,r`(?:^|[/@])motion-utils(?:[./@?]|$)##c=70`],
   body:[
     r`(?:from|require\()\s*["']framer-motion["']##c=88`,
     r`(?:from|require\()\s*["']motion/react["']##c=88`,
     r`(?:from|require\()\s*["']motion["']##c=82`,
     r`(?:^|["'\/@])framer-motion(?:[/@"'\.]|$)##c=82`,
+    r`(?:^|["'\/@])motion(?:[/@"'\.]|$)##c=72`,
     r`(?:^|["'\/@])motion-dom(?:[/@"'\.]|$)##c=76`,
+    r`(?:\bAnimatePresence\b|\bMotionConfig\b|\buseMotionValue\b|\buseTransform\b|\bVisualElement\b)##c=55`,
     r`(?:^|["'\/@])motion-utils(?:[/@"'\.]|$)##c=76`
   ],
   sourceMaps:[
@@ -162,7 +166,8 @@ T("Framer Motion","Animation","https://motion.dev",{
   ],
   sourceNames:[
     r`(?:^|[/\\])node_modules[/\\](?:framer-motion|motion)(?:[/\\])##c=100`,
-    r`(?:^|[/\\])(?:framer-motion|motion)(?:[/\\](?:react|dom|utils))[/\\]##c=100`
+    r`(?:^|[/\\])(?:framer-motion|motion)(?:[/\\](?:react|dom|utils))[/\\]##c=100`,
+    r`(?:^|[/\\])(?:framer-motion|motion)(?:[/\\].*)?$##c=100`
   ],
   js:{"probe:framerMotion":"##c=96"}
 });

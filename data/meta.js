@@ -1,13 +1,14 @@
 // JoErl StackSpy — categories, layers and teaching knowledge (headers, cookies, CSS features).
 (function (g) {
   g.LAYERS = [
-    { id: "experience",  name: "Experience",           hint: "What visitors see and touch" },
-    { id: "application", name: "Application",          hint: "Code that runs in the browser" },
-    { id: "content",     name: "Content & commerce",   hint: "Where content, products and users live" },
-    { id: "backend",     name: "Backend",              hint: "Servers, languages and data" },
-    { id: "edge",        name: "Edge & hosting",       hint: "How requests reach the origin" },
-    { id: "services",    name: "Third-party services", hint: "Outside tools bolted onto the page" },
-    { id: "platform",    name: "Web platform",         hint: "Standards and delivery techniques" }
+    { id: "content",        name: "Core Content & Development Stack",    hint: "CMS, content platforms and application foundations." },
+    { id: "development",    name: "Development",                         hint: "JavaScript frameworks, libraries, web frameworks and tooling." },
+    { id: "infrastructure", name: "Infrastructure",                      hint: "Programming languages, servers, databases and hosting." },
+    { id: "networking",     name: "Performance, Security & Networking",  hint: "CDNs, security, caching, reverse proxies and load balancers." },
+    { id: "commerce",       name: "Commerce & Payments",                 hint: "E-commerce platforms and payment processors." },
+    { id: "business",       name: "Business, Marketing & Operations",     hint: "Analytics, tags, marketing, CRM, chat, monitoring and operations." },
+    { id: "experience",     name: "Interface & Experience",              hint: "UI frameworks, fonts, icons, media, maps and widgets." },
+    { id: "platform",       name: "Web Platform & Standards",             hint: "Browser standards, protocols and performance features." }
   ];
 
   g.CATS = {
@@ -171,6 +172,79 @@
     [/^NEXT_LOCALE$/, "Next.js i18n", "Remembers the visitor's locale."],
     [/^theme$|^color-?scheme$|^mode$/, "Theme preference", "Remembers light/dark preference."]
   ];
+
+  // Wappalyzer-inspired public-facing taxonomy. StackSpy keeps its own internal
+  // detector categories, then normalises them for the UI. This gives users familiar
+  // buckets without copying Wappalyzer's current technology database.
+  g.CATEGORY_ALIASES = {
+    "JS Frameworks":"JavaScript Frameworks", "Meta-frameworks":"JavaScript Frameworks",
+    "JS Libraries":"JavaScript Libraries", "Animation":"JavaScript Libraries",
+    "State Management":"JavaScript Libraries", "Build Tools":"Development",
+    "Documentation":"Development", "APIs & Data":"APIs",
+    "CMS":"CMS", "Headless CMS":"Headless CMS", "Site Builders":"Page Builders",
+    "Ecommerce":"E-commerce Platforms", "Payment":"Payment Processors",
+    "Authentication":"Authentication", "Search":"Search",
+    "Programming Languages":"Programming Languages", "Web Frameworks":"Web Frameworks",
+    "Web Servers":"Web Servers", "Backend Platforms":"Backend Platforms", "Databases":"Databases",
+    "CDN":"CDN", "Hosting":"PaaS / IaaS / Web Hosting", "Security":"Security",
+    "Caching & Proxies":"Caching", "Analytics":"Analytics", "Tag Managers":"Tag Managers",
+    "Marketing":"Marketing Automation", "Advertising":"Advertising",
+    "Live Chat":"Live Chat / Customer Support", "CRM":"CRM", "Consent Management":"Consent Management",
+    "A/B Testing":"A/B Testing", "Monitoring":"Monitoring", "Reviews":"Reviews", "Email":"Email",
+    "Widgets":"Widgets", "Accessibility":"Accessibility", "UI Frameworks":"UI Frameworks",
+    "Icon Sets":"Icon Sets", "Fonts":"Font Scripts", "Video & Media":"Video Players",
+    "Maps":"Maps", "Performance":"Performance", "Web Platform":"Web Platform"
+  };
+  g.CATEGORY_OVERRIDES = {
+    "Framer Motion":"JavaScript Libraries", "GSAP":"JavaScript Libraries", "Anime.js":"JavaScript Libraries",
+    "Three.js":"JavaScript Graphics", "PixiJS":"JavaScript Graphics", "D3.js":"JavaScript Graphics",
+    "Chart.js":"JavaScript Graphics",
+    "Amazon Web Services":"IaaS", "Microsoft Azure":"IaaS", "Google Cloud Run / App Engine":"PaaS",
+    "Cloudflare Pages":"PaaS", "Deno Deploy":"PaaS", "Replit":"PaaS", "GitHub Pages":"Web Hosting",
+    "SiteGround":"Web Hosting", "Kinsta":"Web Hosting", "WP Engine":"Web Hosting",
+    "Pantheon":"Web Hosting", "Acquia":"Web Hosting", "Surge":"Web Hosting",
+    "Varnish":"Caching", "Squid":"Caching", "Envoy":"Reverse Proxies", "HAProxy":"Reverse Proxies",
+    "Traefik":"Reverse Proxies", "Kong":"Reverse Proxies", "Amazon ALB / ELB":"Load Balancers"
+  };
+  g.CATEGORY_META = {
+    "CMS":{layer:"content",blurb:"Content management systems such as WordPress, Drupal and Joomla."},
+    "Headless CMS":{layer:"content",blurb:"API-first content platforms separated from presentation."},
+    "JavaScript Frameworks":{layer:"development",blurb:"Frameworks such as React, Vue, Angular and Next.js."},
+    "JavaScript Libraries":{layer:"development",blurb:"Reusable libraries such as jQuery, Lodash, D3.js and Framer Motion."},
+    "JavaScript Graphics":{layer:"experience",blurb:"JavaScript graphics, charting and visualisation libraries."},
+    "Web Frameworks":{layer:"development",blurb:"Server-side or full-stack frameworks such as Django, Rails and Laravel."},
+    "Programming Languages":{layer:"infrastructure",blurb:"Languages and runtimes inferred from public web signals."},
+    "Web Servers":{layer:"infrastructure",blurb:"HTTP servers such as Nginx, Apache and IIS."},
+    "Databases":{layer:"infrastructure",blurb:"Databases inferred from platform and application fingerprints."},
+    "PaaS / IaaS / Web Hosting":{layer:"infrastructure",blurb:"Cloud platforms and hosting providers."},
+    "PaaS":{layer:"infrastructure",blurb:"Platform-as-a-Service providers."}, "IaaS":{layer:"infrastructure",blurb:"Infrastructure-as-a-Service providers."},
+    "Web Hosting":{layer:"infrastructure",blurb:"Traditional and managed web hosting providers."},
+    "CDN":{layer:"networking",blurb:"Content delivery networks and edge services."},
+    "Security":{layer:"networking",blurb:"WAFs, bot protection and security controls."},
+    "Caching":{layer:"networking",blurb:"Caching and acceleration layers."},
+    "Reverse Proxies":{layer:"networking",blurb:"Reverse proxies, gateways and routing layers."},
+    "Load Balancers":{layer:"networking",blurb:"Traffic distribution and load-balancing infrastructure."},
+    "Analytics":{layer:"business",blurb:"Visitor analytics and measurement platforms."}, "Tag Managers":{layer:"business",blurb:"Script and tag containers."},
+    "Payment Processors":{layer:"commerce",blurb:"Payment and checkout providers such as Stripe and PayPal."},
+    "E-commerce Platforms":{layer:"commerce",blurb:"Platforms powering catalogues, carts and online stores."},
+    "Marketing Automation":{layer:"business",blurb:"Marketing automation and campaign platforms."}, "CRM":{layer:"business",blurb:"Customer relationship management platforms."},
+    "Live Chat / Customer Support":{layer:"business",blurb:"Live chat and customer-support widgets."}, "Issue Trackers":{layer:"business",blurb:"Issue tracking and uptime systems."},
+    "Advertising":{layer:"business",blurb:"Advertising networks, pixels and conversion tracking."},
+    "UI Frameworks":{layer:"experience",blurb:"UI and styling systems such as Tailwind CSS, Bootstrap and MUI."},
+    "Font Scripts":{layer:"experience",blurb:"Hosted font services and font delivery."}, "Icon Sets":{layer:"experience",blurb:"Icon libraries and icon systems."},
+    "Widgets":{layer:"experience",blurb:"Embedded third-party interface components."}, "Video Players":{layer:"experience",blurb:"Video hosting and player technologies."}, "Maps":{layer:"experience",blurb:"Mapping and geolocation technologies."},
+    "Development":{layer:"development",blurb:"Build, documentation and development tooling."}, "Static Site Generators":{layer:"development",blurb:"Static site generation tools."}, "APIs":{layer:"development",blurb:"API and data-access technologies."},
+    "Authentication":{layer:"content",blurb:"Identity and authentication services."}, "Search":{layer:"content",blurb:"Search engines and hosted site-search services."},
+    "Backend Platforms":{layer:"development",blurb:"Backend-as-a-service and serverless platforms."}, "Consent Management":{layer:"business",blurb:"Cookie consent and privacy management."},
+    "A/B Testing":{layer:"business",blurb:"Experimentation and feature testing."}, "Monitoring":{layer:"business",blurb:"Error tracking, monitoring and session replay."},
+    "Marketing":{layer:"business",blurb:"Marketing and lead-generation tools."}, "Reviews":{layer:"business",blurb:"Ratings, reviews and user-generated feedback."}, "Email":{layer:"business",blurb:"Email delivery and messaging services."},
+    "Accessibility":{layer:"experience",blurb:"Accessibility tools and services."}, "Performance":{layer:"platform",blurb:"Performance and optimisation technologies."}, "Web Platform":{layer:"platform",blurb:"Browser standards and delivery technologies."}
+  };
+
+  // Expose the normalized taxonomy through the same CATS object consumed by the popup.
+  for (const [name, meta] of Object.entries(g.CATEGORY_META)) {
+    g.CATS[name] = Object.assign({ why: meta.blurb || "" }, meta);
+  }
 
   // CSS feature detectors for the "Front-end craft" insights.
   g.CSS_FEATURES = [
