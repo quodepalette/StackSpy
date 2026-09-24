@@ -1,50 +1,63 @@
-# JoErl StackSpy 2.0
+# StackSpy
 
-X-ray any website and learn how it was built. StackSpy detects **760+ technologies** (frameworks, CMSs, servers, CDNs, analytics, payment, auth…), shows the **evidence** behind every detection, and explains each one in plain English — with "Try it in DevTools" tips to teach you as you browse.
+StackSpy is a Chrome extension that looks at the site you're on and tells you what it's actually built with. Point it at a page and it'll dig through the HTML, network requests, cookies, headers, and even JavaScript bundles to figure out the CMS, frameworks, hosting, CDN, analytics tools, and a lot more, then explain what it found in plain English instead of just dumping a list of names at you.
 
-## Install (Chrome / Edge / Brave)
-1. Unzip this folder.
-2. Open `chrome://extensions`, switch on **Developer mode**.
-3. Click **Load unpacked** and select the `JoErl-StackSpy` folder.
-4. Pin the icon. The badge shows how many technologies each tab uses.
+Think of it as popping the hood on any website.
 
-## What you get
-| Tab | What's inside |
-|---|---|
-| **Stack** | A layered cross-section (Experience → Application → Content → Backend → Edge → Services → Web platform), "Worth studying" highlights, and an expandable card per technology: what it is, why sites use it, extracted details (WordPress theme & plugins, Next.js build ID/router, GTM & GA IDs, Stripe live/test mode, Vercel region, Cloudflare edge…), and the exact evidence. |
-| **Insights** | Performance (TTFB, FCP, LCP + element, CLS, weight, render-blocking), security-header hygiene, SEO & sharing, accessibility signals, modern CSS in use (container queries, `:has()`, view transitions…), typography, images, DOM size. Tap any row for the lesson. |
-| **Network** | Document/redirect chain, server IP, every response header with an explanation, third-party hosts mapped to technologies, cookies (names + flags only), resource breakdown, heaviest files, Server-Timing, resource hints. |
-| **Inside** | Deep-scan results: version banners and **source-map** detection in bundles, `robots.txt`, `humans.txt`, `security.txt`, web-app manifest; site-defined `window` globals, custom elements, storage key names, `data-*` attributes, scripts, meta tags, HTML comments. |
-| **Saved** | Star a site to keep it; search your collection by technology. |
+## What it does
 
-Extras: light/dark/auto theme, filter box on every tab, copy/download report as Markdown, copy JSON, full-page view.
+- **Detects technologies across the whole stack.** Nearly 760 signatures covering CMSs, JS frameworks, meta-frameworks, build tools, backend languages, databases, hosting, CDNs, security tools, analytics, payments, and more, organized into 8 layers and 60+ categories.
+- **Explains its evidence.** Every detection shows *why* StackSpy thinks it's there, whether that's a script URL, a cookie, an HTML class, a header, or a name buried in a source map, along with a confidence level (inferred, corroborated, good, or strong).
+- **Teaches as it goes.** Each category comes with a short note on what it means and why it matters, so you're not just collecting trivia, you're learning how the site was put together.
+- **Digs into performance.** TTFB, FCP, LCP, CLS, long tasks, page weight, compression, HTTP version, caching headers, all pulled straight from the Performance API and explained with plain-language thresholds.
+- **Checks security and SEO basics.** Cookie flags, security headers, HTTPS, meta tags, robots.txt, sitemap presence, that sort of thing.
+- **Looks under the hood.** A dedicated tab shows JS bundles, source maps, global variables the page defines, custom elements, data attributes, and leftover HTML comments, useful for actually reverse-engineering how something works.
+- **Does a deep scan on request.** The passive scan runs automatically on page load. A deep scan (triggered from the popup) fetches JS bundles and their source maps to catch dependencies that only show up in lazy-loaded chunks.
+- **Lets you save and export sites.** Bookmark interesting sites, export your collection as JSON, and copy or download any report as Markdown.
 
-## How detection works
-* **Passive scan** (automatic on page load, powers the badge): response headers, cookies (incl. HttpOnly names), HTML/DOM, script/style/link URLs, inline CSS, class-name statistics, custom elements, `window` globals (diffed against a blank iframe), framework probes (React roots, Vue app versions…), storage key names, service workers, Performance API and network requests.
-* **Deep scan** (only when you open the popup): inspects application and dynamically loaded JavaScript chunks, not just `<script src>` tags, plus stylesheets. Candidate bundles are read in full up to a bounded per-file limit, and exposed source maps are fetched and inspected for package paths. This is important for bundled libraries such as Motion/Framer Motion, where the package name may not appear in a script URL.
-* **Evidence-first scoring:** rule weights are signal strengths, not percentages to add together. Repeated matches from the same evidence family have diminishing returns; different families (for example source map + bundle + script URL) reinforce each other. A weak single clue is never promoted to a detection. The UI labels detections by evidence strength.
+## How it works
 
-## Privacy
-Everything runs locally. No analytics, no remote calls of your own; deep-scan requests go only to the site you're viewing. Cookie **values** and storage **values** are never included in reports (Set-Cookie values are redacted). Your saved list lives in `chrome.storage.local`.
+StackSpy is a Manifest V3 extension with a few moving pieces:
 
-## Extending the knowledge base
-Add entries to `data/tech-*.js`:
+- **`background.js`** is the service worker. It watches network traffic per tab (headers, redirects, IPs, requests), runs the actual scans, and caches results per tab and per URL.
+- **`lib/collector.js`** runs inside the page (both the isolated content-script world and the page's own main world) to pull out DOM structure, computed CSS, performance timings, storage keys, global variables, and more.
+- **`lib/engine.js`** takes all of that collected data plus the technology database and matches patterns against it to produce a list of detected technologies with evidence and confidence scores.
+- **`lib/insights.js`** turns the raw facts and detections into the readable sections you see in the popup: performance, security, SEO, accessibility, network, and the "under the hood" tab.
+- **`data/*.js`** holds the technology signatures themselves, split across a few files by category (content platforms, frontend, backend/edge, services, and a growing "expansion" file), plus the metadata that defines layers, categories, and teaching copy.
+- **`popup.html` / `popup.js` / `popup.css`** render the actual UI you interact with, built with plain DOM APIs rather than a framework.
 
-```js
-T("My Tech", "JS Libraries", "https://example.com", {
-  d: "What it is and why teams use it.",
-  tip: "Something to try in DevTools.",
-  scripts: [r`mytech(?:@|/)([\d.]+)##v=\1`],   // ##v= version, ##c= confidence weight
-  js: { "MyTech.version": r`^([\d.]+)##v=\1` },
-  headers: { "x-powered-by": r`MyTech` },
-  implies: ["Node.js"],
-  extract: { "Build ID": "js:MyTech.build" }
-});
-```
-Rule sources: `url html css scripts styles links requests classes attrs tags globals storage sw iframes serverTiming body sourceMaps proto headers meta cookies js dom stats`.
+Nothing here calls out to a third-party server. Detection is fully local, based on what your browser already loaded.
 
-Brand glyphs © their owners, via [Simple Icons](https://simpleicons.org) (CC0). Fonts: Bricolage Grotesque, Instrument Sans, JetBrains Mono (SIL OFL).
+## Installing it
 
+1. Clone or download this repo.
+2. Open `chrome://extensions` in Chrome (or another Chromium-based browser).
+3. Turn on **Developer mode** in the top right.
+4. Click **Load unpacked** and select the `StackSpy` folder.
+5. Pin the extension and click it on any site.
 
-## Evidence policy (2.2)
-StackSpy reports a technology only when that technology has its own evidence on the inspected page. It does not infer WordPress from a WordPress plugin, React from an animation library, or any other dependency from an `implies` relationship. Lazy JavaScript chunks are inspected directly, source maps are inspected when available, and React runtime fibers may provide additional Motion evidence. Weak isolated clues are not promoted to detections.
+Requires Chrome 110 or newer.
+
+## Using it
+
+Open the popup on any page and StackSpy runs a quick passive scan automatically. From there:
+
+- **Stack** shows everything detected, grouped by layer, with confidence and evidence for each.
+- **Insights** covers performance, security, SEO, and accessibility findings.
+- **Network** breaks down headers, cookies, third-party requests, and resource sizes.
+- **Inside** shows JS bundles, source maps, globals, and other things picked up during a deep scan.
+- **Saved** holds any sites you've bookmarked for later.
+
+Hit rescan for a deeper look that fetches and inspects JS bundles directly, or use the menu to copy a report as Markdown or JSON, download it, or open the full-page view.
+
+## Permissions
+
+StackSpy asks for `activeTab`, `scripting`, `webRequest`, `storage`, `cookies`, and host access to all URLs. It needs all of that to inspect network traffic and page content on whatever site you're visiting, but it doesn't send anything off your machine. Everything is analyzed and stored locally.
+
+## Contributing
+
+Most contributions will probably be new technology signatures. Take a look at the existing entries in `data/tech-1-content.js` through `data/tech-5-expansion.js` for the pattern format (URL, HTML, header, cookie, and global-variable matchers, plus optional version extraction), and add new ones there. If you're adding a new category, register it in `data/meta.js` first so it has a layer, a blurb, and a "why it matters" note.
+
+## License
+
+Add your license of choice here.
