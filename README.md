@@ -58,6 +58,4 @@ StackSpy asks for `activeTab`, `scripting`, `webRequest`, `storage`, `cookies`, 
 
 Most contributions will probably be new technology signatures. Take a look at the existing entries in `data/tech-1-content.js` through `data/tech-5-expansion.js` for the pattern format (URL, HTML, header, cookie, and global-variable matchers, plus optional version extraction), and add new ones there. If you're adding a new category, register it in `data/meta.js` first so it has a layer, a blurb, and a "why it matters" note.
 
-## License
 
-Add your license of choice here.
