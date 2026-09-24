@@ -54,8 +54,4 @@ Hit rescan for a deeper look that fetches and inspects JS bundles directly, or u
 
 StackSpy asks for `activeTab`, `scripting`, `webRequest`, `storage`, `cookies`, and host access to all URLs. It needs all of that to inspect network traffic and page content on whatever site you're visiting, but it doesn't send anything off your machine. Everything is analyzed and stored locally.
 
-## Contributing
-
-Most contributions will probably be new technology signatures. Take a look at the existing entries in `data/tech-1-content.js` through `data/tech-5-expansion.js` for the pattern format (URL, HTML, header, cookie, and global-variable matchers, plus optional version extraction), and add new ones there. If you're adding a new category, register it in `data/meta.js` first so it has a layer, a blurb, and a "why it matters" note.
-
 
